@@ -1,0 +1,9 @@
+fastapi>=0.110
+uvicorn[standard]>=0.29
+pydantic>=2.6 # Data validation 
+pydantic-settings>=2.2 # Loads and validates configuration
+qdrant-client>=1.8 # Communicates with Qdrant
+sentence-transformers>=2.5 # Generates embeddings
+transformers>=4.38
+torch>=2.1
+peft>=0.18

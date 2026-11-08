@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# macOS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+
+# Fine-tuned models
+clarityLM/
+models/
+*.safetensors
+*.pt
+*.pth
+
+# Frontend
+node_modules/
+dist/
+.next/
+
+# Logs
+*.log
