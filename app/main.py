@@ -4,7 +4,7 @@ import logging
 from app.api.routes import router
 from app.core.config import Settings
 from app.services.embeddings_service import EmbeddingService
-from app.services.qdrant_service import QdrantService   
+from app.services.qdrant_service import QdrantService
 from app.services.llm_service import LocalLLM
 from app.services.rag_service import RAGService
 
@@ -12,11 +12,10 @@ logger = logging.getLogger("uvicorn")
 logger.info("*** CLARITYLM RAG STARTS ***")
 
 
-@asynccontextmanager # Start of application after connecting to database successfully
+@asynccontextmanager  # Start of application after connecting to database successfully
 async def lifespan(app: FastAPI):
     settings = Settings()
-    app.state.settings = settings # config settings is stored here 
-
+    app.state.settings = settings  # config settings is stored here
 
     logging.basicConfig(
         level=settings.log_level,

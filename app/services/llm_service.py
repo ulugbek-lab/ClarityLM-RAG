@@ -11,11 +11,12 @@ from app.core.config import Settings
 
 
 class LocalLLM:
-    def __init__(self, settings: Settings) -> None: # Initialize the LLM model 
+    def __init__(self, settings: Settings) -> None:  # Initialize the LLM model
         self._settings = settings
         model, tokenizer = self._load_model_and_tokenizer(settings)
-        device = 0 if settings.llm_device.lower() != 'cpu' and torch.cuda.is_available() else -1
-        self._pipeline = pipeline( # Generating, tokenization and decoding final text here
+        device = 0 if settings.llm_device.lower(
+        ) != 'cpu' and torch.cuda.is_available() else -1
+        self._pipeline = pipeline(  # Generating, tokenization and decoding final text here
             'text-generation',
             model=model,
             tokenizer=tokenizer,
@@ -28,15 +29,17 @@ class LocalLLM:
             prompt,
             max_new_tokens=self._settings.llm_max_new_tokens,
             temperature=self._settings.llm_temperature,
-            do_sample=self._settings.llm_temperature > 0, # sampling enabled, | creative responses 
+            # sampling enabled, | creative responses
+            do_sample=self._settings.llm_temperature > 0,
             pad_token_id=generator.tokenizer.eos_token_id,
         )
-        text = outputs[0]['generated_text'] #huggingface =  prompt + generated_text
-        return text[len(prompt) :].strip() # generated_text
+        # huggingface =  prompt + generated_text
+        text = outputs[0]['generated_text']
+        return text[len(prompt):].strip()  # generated_text
 
     def _load_model_and_tokenizer(self, settings: Settings):
         adapter_path = settings.llm_adapter_path
-        if not adapter_path: # If not Adapter , just use base model itself
+        if not adapter_path:  # If not Adapter , just use base model itself
             tokenizer = AutoTokenizer.from_pretrained(settings.llm_model)
             model = AutoModelForCausalLM.from_pretrained(settings.llm_model)
             return model, tokenizer
@@ -47,7 +50,7 @@ class LocalLLM:
                 'Install dependencies from requirements.txt.'
             )
 
-        base_model_name = settings.llm_model # base model 
+        base_model_name = settings.llm_model  # base model
         try:
             peft_config = PeftConfig.from_pretrained(adapter_path)
             if peft_config.base_model_name_or_path:
