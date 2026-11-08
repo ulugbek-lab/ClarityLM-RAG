@@ -10,7 +10,7 @@ from app.services.rag_service import RAGService
 from utils.source_formatting import format_source
 
 router = APIRouter()
-MAX_UPLOAD_BYTES = 5 * 1024 * 1024  # 5 MiB per file
+MAX_UPLOAD_BYTES = 5 * 1024 * 1024
 ALLOWED_SUFFIXES = {'.pdf', '.txt', '.md'}
 
 
@@ -25,16 +25,13 @@ def get_rag_service(request: Request) -> RAGService:
 
 @router.post('/upload', response_model=UploadResponse)
 async def upload_document(file: UploadFile = File(...), rag: RAGService = Depends(get_rag_service)) -> UploadResponse:
-    # The supplied filename is metadata only; never use it as a filesystem path.
     filename = Path(file.filename or '').name
     if not filename or Path(filename).suffix.lower() not in ALLOWED_SUFFIXES:
-        raise HTTPException(
-            status_code=400, detail='Upload a PDF, TXT, or MD file.')
+        raise HTTPException(status_code=400, detail='Upload a PDF, TXT, or MD file.')
     content = await file.read(MAX_UPLOAD_BYTES + 1)
     await file.close()
     if len(content) > MAX_UPLOAD_BYTES:
-        raise HTTPException(
-            status_code=413, detail='Maximum file size is 5 MiB.')
+        raise HTTPException(status_code=413, detail='Maximum file size is 5 MiB.')
     try:
         document_id, chunks = rag.ingest_upload(filename, content)
     except ValueError as exc:
@@ -43,9 +40,15 @@ async def upload_document(file: UploadFile = File(...), rag: RAGService = Depend
 
 
 @router.post('/ingest-path', response_model=IngestPathResponse)
-def ingest_path(payload: IngestPathRequest, rag: RAGService = Depends(get_rag_service)) -> IngestPathResponse:
-    # Local development utility. Disable or protect this route before public deployment.
-    ingested, skipped = rag.ingest_folder(payload.path)
+def ingest_path(payload: IngestPathRequest, request: Request,
+                rag: RAGService = Depends(get_rag_service)) -> IngestPathResponse:
+    # Local-only development tool. Disabled by default even if /docs lists it.
+    if not request.app.state.settings.enable_ingest_path:
+        raise HTTPException(status_code=403, detail='Filesystem ingestion is disabled.')
+    try:
+        ingested, skipped = rag.ingest_folder(payload.path)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
     return IngestPathResponse(ingested=ingested, skipped=skipped)
 
 

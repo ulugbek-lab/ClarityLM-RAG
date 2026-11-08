@@ -1,48 +1,36 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from typing import Optional
 
 
-class Settings(BaseSettings): 
+class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file='.env',
-        env_file_encoding='utf-8',
-        case_sensitive=False,
+        env_file='.env', env_file_encoding='utf-8', case_sensitive=False,
+        extra='ignore',
     )
-    # BaseSettings lets your application load values from environment variables and a .env file, validate their types, and supply defaults.
+
     app_name: str = 'claritylm_rag'
     log_level: str = 'INFO'
 
-    # Vector database connection
     qdrant_url: str
-    qdrant_api_key: str 
-    qdrant_collection: str 
-    qdrant_timeout:float = 10.0
+    qdrant_api_key: str | None = None
+    qdrant_collection: str = 'claritylm_documents'
+    qdrant_timeout: float = 10.0
 
-    # Converts text into numerical vectors
-    embedding_model: str 
-
-    # Language model selection and execution
-    llm_model: str 
-    llm_adapter_path: str | None = None
+    embedding_model: str = 'sentence-transformers/all-MiniLM-L6-v2'
+    llm_model: str = 'TinyLlama/TinyLlama-1.1B-Chat-v1.0'
+    llm_adapter_path: str | None = './clarityLM'
     llm_device: str = 'cpu'
-    llm_max_new_tokens: int
+    llm_max_new_tokens: int = 256
     llm_temperature: float = 0.2
 
-    # Intended RAG behavior
     rag_enabled: bool = True
-    rag_mode: str = 'auto'
-
-    # Intended retrieval filtering
+    rag_mode: str = 'auto'  # Backward compatibility; API use_rag takes precedence
     top_k: int = 5
-    max_context_chars: int = 4000 # max content charcters
+    max_context_chars: int = 4000
     min_score: float = 0.25
     min_score_strict: float = 0.35
     max_sources: int = 2
-
-    # Intended document chunking
     chunk_size_chars: int = 1200
     chunk_overlap_chars: int = 200
-    qdrant_timeout: float = 10.0
 
-
-# settings = Settings()
+    # Never expose unrestricted server filesystem ingestion to public users.
+    enable_ingest_path: bool = False
